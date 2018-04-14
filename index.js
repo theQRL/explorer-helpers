@@ -7,10 +7,15 @@ function numberToString(num) {
   return math.format(num, { notation: 'fixed', "lowerExp": 1e-100, "upperExp": Infinity });
 }
 
-module.exports = function(response) {
+module.exports = {
+  /**
+   * txhash: take a Grpc node response to a txhash query and format it for browsers
+   * @response {Object}
+   */
+  txhash: function(response) {
   const output = response
-  try {
-    if (response.transaction.header) {
+  if ((typeof response) !== 'object') { return false }
+    if (response.transaction.header !== null ) {
       output.transaction.header.hash_header = Buffer.from(output.transaction.header.hash_header).toString('hex')
       output.transaction.header.hash_header_prev = Buffer.from(output.transaction.header.hash_header_prev).toString('hex')
       output.transaction.header.merkle_root = Buffer.from(output.transaction.header.merkle_root).toString('hex')
@@ -95,51 +100,6 @@ module.exports = function(response) {
       }
     }
 
-    if (output.transaction.tx.transactionType === 'transfer_token') {
-      // Request Token Decimals / Symbol
-      const symbolRequest = {
-        query: Buffer.from(output.transaction.tx.transfer_token.token_txhash, 'hex'),
-      }
-      const thisSymbolResponse = Meteor.wrapAsync(getObject)(symbolRequest)
-      /* FIXME: thisSymbol is not used! */
-      // eslint-disable-next-line
-      const thisSymbol = Buffer.from(thisSymbolResponse.transaction.tx.token.symbol).toString()
-      const thisDecimals = thisSymbolResponse.transaction.tx.token.decimals
-
-      // Calculate total transferred, and generate a clean structure to display outputs from
-      let thisTotalTransferred = 0
-      const thisOutputs = []
-      _.each(output.transaction.tx.transfer_token.addrs_to, (thisAddress, index) => {
-        const thisOutput = {
-          address: `Q${Buffer.from(thisAddress).toString('hex')}`,
-          // eslint-disable-next-line
-          amount: numberToString(output.transaction.tx.transfer_token.amounts[index] / Math.pow(10, thisDecimals)),
-        }
-        thisOutputs.push(thisOutput)
-        // Now update total transferred with the corresponding amount from this output
-        thisTotalTransferred += parseInt(output.transaction.tx.transfer_token.amounts[index], 10)
-      })
-      output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
-      output.transaction.tx.addr_from = `Q${Buffer.from(output.transaction.addr_from).toString('hex')}`
-      output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
-      output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
-      output.transaction.tx.transfer_token.token_txhash = Buffer.from(output.transaction.tx.transfer_token.token_txhash).toString('hex')
-      output.transaction.tx.transfer_token.outputs = thisOutputs
-      // eslint-disable-next-line
-      output.transaction.tx.totalTransferred = numberToString(thisTotalTransferred / Math.pow(10, thisDecimals))
-
-      output.transaction.explorer = {
-        from: output.transaction.tx.addr_from,
-        outputs: thisOutputs,
-        signature: output.transaction.tx.signature,
-        publicKey: output.transaction.tx.public_key,
-        token_txhash: output.transaction.tx.transfer_token.token_txhash,
-        // eslint-disable-next-line
-        totalTransferred: numberToString(thisTotalTransferred / Math.pow(10, thisDecimals)),
-        type: 'TRANSFER TOKEN',
-      }
-    }
-
     if (output.transaction.tx.transactionType === 'slave') {
       output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
 
@@ -179,8 +139,5 @@ module.exports = function(response) {
       }
     }
     return output
-  } catch (e) {
-    console.log(e)
-    return false
-  }
+}
 }
