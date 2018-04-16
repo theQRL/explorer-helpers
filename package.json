@@ -1,6 +1,6 @@
 {
   "name": "@theqrl/explorer-helpers",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Helper utilities to reuse QRL blockchain explorer elements",
   "main": "index.js",
   "scripts": {
@@ -23,7 +23,11 @@
     "istanbul": "^0.4.5",
     "mocha": "^5.1.0"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
+    "axios": "^0.18.0",
     "mathjs": "^4.1.1",
     "underscore": "^1.8.3"
   }

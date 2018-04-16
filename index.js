@@ -1,5 +1,6 @@
 var _ = require('underscore');
 var math = require('mathjs');
+var HTTPS = require('axios');
 
 var SHOR_PER_QUANTA = 1000000000;
 
@@ -7,15 +8,44 @@ function numberToString(num) {
   return math.format(num, { notation: 'fixed', "lowerExp": 1e-100, "upperExp": Infinity });
 }
 
+const apiCall = async (apiUrl) => {
+  try {
+    const response = await HTTPS.get(apiUrl)
+    return response.data
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+async function getQRLprice() {
+    try {
+      const apiUrl = 'https://bittrex.com/api/v1.1/public/getmarketsummary?market=btc-qrl'
+      const apiUrlUSD = 'https://bittrex.com/api/v1.1/public/getmarketsummary?market=usdt-btc'
+      let b = await apiCall(apiUrl)
+      let c = await apiCall(apiUrlUSD)
+      return ([b, c])
+    } catch (e) {
+      console.log(e.message)
+    }
+  }
+
 module.exports = {
   /**
+   * function
+   * version: reports current version
+   */
+  version: function() {
+    return '0.0.3'
+  },
+  /**
+   * function
    * txhash: take a Grpc node response to a txhash query and format it for browsers
    * @response {Object}
    */
   txhash: function(response) {
-  const output = response
-  if ((typeof response) !== 'object') { return false }
-    if (response.transaction.header !== null ) {
+    const output = response
+    if ((typeof response) !== 'object') { return false }
+    if (response.transaction.header !== null) {
       output.transaction.header.hash_header = Buffer.from(output.transaction.header.hash_header).toString('hex')
       output.transaction.header.hash_header_prev = Buffer.from(output.transaction.header.hash_header_prev).toString('hex')
       output.transaction.header.merkle_root = Buffer.from(output.transaction.header.merkle_root).toString('hex')
@@ -139,5 +169,13 @@ module.exports = {
       }
     }
     return output
-}
+  },
+  /**
+   * ASYNC function
+   * qrlPrice: returns current market price per Quanta in USD from Bittrex API
+   */
+  qrlPrice: async function() {
+    const x = await getQRLprice()
+    return x[0].result[0].Last * x[1].result[0].Last
+  },
 }
