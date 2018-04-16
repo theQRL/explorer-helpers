@@ -3,8 +3,13 @@ node_js:
   - stable
 install:
   - npm install
-
 script:
   - npm run cover
-
-after_script: "cat coverage/lcov.info | node_modules/coveralls/bin/coveralls.js"
+after_script: cat coverage/lcov.info | node_modules/coveralls/bin/coveralls.js
+deploy:
+  provider: npm
+  email: jp@theqrl.org
+  api_key: cJudYBqYt+1jBAKn62Fqw+0jL45HJWb+C4EFRj9L+hh20um2fPIDvtK0uCZGJkMi1zA9Xi8mlxRoI0VYMU5bCp9Uvj63aFRdrZ2ab5JpQCMrcX7eI+eCZh2vGwouqG5Zq6f8J5Y/XQ0HcXK/XnYQ9JsCkoZxnvs4xGA9gberrdrt/XBCBXqjtbcUa59i3P+s0QbiEqk2KFtCqVvt5kZzvcvOVWIp5O/nNWnDI9jqIVmp72Zu05ADagq8T+0Mc0av8/WQKpP69IwA0GGmwHWiQNalpTe+TXy4hnYfFOUvkHYHGbJwHTyYQ4Vj6b8h6woijSsTimGpGPPx12/6dO9Ohe1lKFNeyVBNZSA3EIgTg0sWsmPJbiDAryoLXiAKnrpn5xWfI5YjKINIURiFnLbcd87m58hQ9YBstzOL5xzl5+xNB0jr786IFORy4cmmPiUvfMbJe0yQhhGCYIBc0QJRSMUIbgv30wdaGlcpKSIqhQdFFcQhks0QcGcC3yQl4hmoWTYB8xViQzr4AIM4drCAjPkflyOOrc48LtmxXiySiHvR06q9Ydcvee2S2UrpBjEdtS/aCFRtg3I7+Vy77cn1yVjUqPae0Aiff8DXh6bc99HWvExB0dz1UAgLtIZMhvTbHV52O8CxkFmHe+5YhyK9E0VFxsav5uuUgoFRgQCkiN8=
+  on:
+    tags: true
+    branch: master
