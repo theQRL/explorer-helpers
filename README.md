@@ -10,7 +10,40 @@ A helper library for front end interfaces to the QRL
 
 ## Usage
 
-TODO
+`var explorerHelpers = require("@theqrl/explorer-helpers")`
+
+(or `import` equivalent in Meteor)
+
+### qrlPrice() => price _number_
+
+Queries Bittrex market price of $QRL.
+
+|   | Description |
+| --- | --- |
+| Function type | async 						 |
+| Parameters    | _none_ 						 |
+| Returns       | _number_ price: price per $QRL in USD |
+
+```javascript
+var x = await explorerHelpers.qrlPrice()
+console.log(`1 QRL = $${x}`)
+```
+[RunKit example](https://runkit.com/jplomas/5ae04b2b291cdd0011f7a1a6)
+
+### txhash(response _json_) => formatted _json_
+
+Takes a grpc query response and formats it for browser display.
+
+|   | Description |
+| --- | --- |
+| Function type | sync 						 |
+| Parameters    | **response _object_**<br>a response to a grpc query |
+| Returns       | **formatted _json_**<br>reformatted json object for browser display or element queries |
+
+```javascript
+var x = await explorerHelpers.txhash(response)
+console.log(x)
+```
 
 ## Tests
 
