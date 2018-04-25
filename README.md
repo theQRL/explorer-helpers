@@ -41,7 +41,7 @@ Takes a grpc query response and formats it for browser display.
 | Returns       | **formatted _json_**<br>reformatted json object for browser display or element queries |
 
 ```javascript
-var x = await explorerHelpers.txhash(response)
+var x = explorerHelpers.txhash(response)
 console.log(x)
 ```
 
