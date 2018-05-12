@@ -18,16 +18,16 @@ const apiCall = async (apiUrl) => {
 }
 
 async function getQRLprice() {
-    try {
-      const apiUrl = 'https://bittrex.com/api/v1.1/public/getmarketsummary?market=btc-qrl'
-      const apiUrlUSD = 'https://bittrex.com/api/v1.1/public/getmarketsummary?market=usdt-btc'
-      let b = await apiCall(apiUrl)
-      let c = await apiCall(apiUrlUSD)
-      return ([b, c])
-    } catch (e) {
-      console.log(e.message)
-    }
+  try {
+    const apiUrl = 'https://bittrex.com/api/v1.1/public/getmarketsummary?market=btc-qrl'
+    const apiUrlUSD = 'https://bittrex.com/api/v1.1/public/getmarketsummary?market=usdt-btc'
+    let b = await apiCall(apiUrl)
+    let c = await apiCall(apiUrlUSD)
+    return ([b, c])
+  } catch (e) {
+    console.log(e.message)
   }
+}
 
 module.exports = {
   /**
@@ -35,7 +35,7 @@ module.exports = {
    * version: reports current version
    */
   version: function() {
-    return '0.0.3'
+    return '0.0.4'
   },
   /**
    * function
@@ -45,6 +45,7 @@ module.exports = {
   txhash: function(response) {
     const output = response
     if ((typeof response) !== 'object') { return false }
+
     if (response.transaction.header !== null) {
       output.transaction.header.hash_header = Buffer.from(output.transaction.header.hash_header).toString('hex')
       output.transaction.header.hash_header_prev = Buffer.from(output.transaction.header.hash_header_prev).toString('hex')
@@ -168,6 +169,23 @@ module.exports = {
         type: 'LATTICE PK',
       }
     }
+
+    if (output.transaction.tx.transactionType === 'message') {
+      output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
+      output.transaction.tx.addr_from = `Q${Buffer.from(output.transaction.addr_from).toString('hex')}`
+      output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
+      output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
+      output.transaction.tx.message.message_hash = Buffer.from(output.transaction.tx.message.message_hash).toString()
+
+      output.transaction.explorer = {
+        from: output.transaction.tx.addr_from,
+        signature: output.transaction.tx.signature,
+        publicKey: output.transaction.tx.public_key,
+        message: output.transaction.tx.message.message_hash,
+        type: 'MESSAGE',
+      }
+    }
+    
     return output
   },
   /**
