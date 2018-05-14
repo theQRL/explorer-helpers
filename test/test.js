@@ -9,9 +9,9 @@ describe('#explorer-helpers', function() {
     expect(result).to.equal(process.env.npm_package_version);
   });
 
-  it(`.qrlPrice should report an integer`, async function() {
+  it(`.qrlPrice should report a numeric`, async function() {
     var result = await helpers.qrlPrice();
-    console.log(result)
+    console.log(`price: ${result}`)
     expect(result).to.be.above(0);
   });
 
