@@ -4,8 +4,9 @@
   "description": "Helper utilities to reuse QRL blockchain explorer elements",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --reporter spec",
-    "cover": "node_modules/istanbul/lib/cli.js cover node_modules/mocha/bin/_mocha -- -R spec test/*"
+    "test": "nyc --reporter=html --reporter=text mocha --reporter spec",
+    "cover": "cross-env NODE_ENV=test nyc --reporter=text --cache mocha test/test.js",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
     "type": "git",
@@ -18,10 +19,15 @@
   },
   "homepage": "https://github.com/theqrl/explorer-helpers#readme",
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-istanbul": "^4.1.6",
+    "babel-preset-env": "^1.7.0",
+    "babel-register": "^6.26.0",
     "chai": "^4.1.2",
-    "coveralls": "^3.0.0",
-    "istanbul": "^0.4.5",
-    "mocha": "^5.1.0"
+    "coveralls": "^3.0.1",
+    "cross-env": "^5.1.5",
+    "mocha": "^5.1.1",
+    "nyc": "^11.7.3"
   },
   "publishConfig": {
     "access": "public"
@@ -30,5 +36,16 @@
     "axios": "^0.18.0",
     "mathjs": "^4.1.1",
     "underscore": "^1.8.3"
+  },
+  "nyc": {
+    "require": [
+      "babel-register"
+    ],
+    "reporter": [
+      "lcov",
+      "text"
+    ],
+    "sourceMap": false,
+    "instrument": false
   }
 }
