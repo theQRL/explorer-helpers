@@ -44,7 +44,7 @@ module.exports = {
    * version: reports current version
    */
   version: function() {
-    return '0.0.5'
+    return '0.0.6'
   },
   /**
    * function
