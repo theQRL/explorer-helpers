@@ -199,19 +199,23 @@ module.exports = {
           // Define place for hash and text to live
           let thisHash
           let thisText
+          let thisHashFunction
 
           // SHA1
           if (hashType == '1') {
             thisHash = hexMessage.substring(6,46)
             thisText = hexToString(hexMessage.substring(46))
+            thisHashFunction = 'SHA1'
           // SHA256
           } else if (hashType == '2') {
             thisHash = hexMessage.substring(6,70)
             thisText = hexToString(hexMessage.substring(70))
+            thisHashFunction = 'SHA256'
           // MD5
           } else if (hashType == '3') {
             thisHash = hexMessage.substring(6,38)
             thisText = hexToString(hexMessage.substring(38))
+            thisHashFunction = 'MD5'
           }
 
           // Save output as DOCUMENT_NOTARISAION txn type
@@ -220,6 +224,7 @@ module.exports = {
             signature: output.transaction.tx.signature,
             publicKey: output.transaction.tx.public_key,
             hash: thisHash,
+            hash_function: thisHashFunction,
             text: thisText,
             raw: hexMessage,
             type: 'DOCUMENT_NOTARISATION',
