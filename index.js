@@ -8,6 +8,15 @@ function numberToString(num) {
   return math.format(num, { notation: 'fixed', "lowerExp": 1e-100, "upperExp": Infinity });
 }
 
+function hexToString(input) {
+  var hex = input.toString()
+  var str = ''
+  for (var n = 0; n < hex.length; n += 2) {
+    str += String.fromCharCode(parseInt(hex.substr(n, 2), 16))
+  }
+  return str
+}
+
 const apiCall = async (apiUrl) => {
   try {
     const response = await HTTPS.get(apiUrl)
@@ -35,7 +44,7 @@ module.exports = {
    * version: reports current version
    */
   version: function() {
-    return '0.0.4'
+    return '0.0.5'
   },
   /**
    * function
@@ -175,14 +184,67 @@ module.exports = {
       output.transaction.tx.addr_from = `Q${Buffer.from(output.transaction.addr_from).toString('hex')}`
       output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
       output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
-      output.transaction.tx.message.message_hash = Buffer.from(output.transaction.tx.message.message_hash).toString()
 
-      output.transaction.explorer = {
-        from: output.transaction.tx.addr_from,
-        signature: output.transaction.tx.signature,
-        publicKey: output.transaction.tx.public_key,
-        message: output.transaction.tx.message.message_hash,
-        type: 'MESSAGE',
+      // Check if message_hash is encoded message
+      const hexMessage = Buffer.from(output.transaction.tx.message.message_hash).toString('hex')
+
+      if (hexMessage.substring(0,4) == 'afaf') {
+        // Found encoded message
+        const messageType = hexMessage.substring(4,5)
+
+        // Document Notarisation
+        if (messageType == 'a') {
+          const hashType = hexMessage.substring(5,6)
+
+          // Define place for hash and text to live
+          let thisHash
+          let thisText
+
+          // SHA1
+          if (hashType == '1') {
+            thisHash = hexMessage.substring(6,46)
+            thisText = hexToString(hexMessage.substring(46))
+          // SHA256
+          } else if (hashType == '2') {
+            thisHash = hexMessage.substring(6,70)
+            thisText = hexToString(hexMessage.substring(70))
+          // MD5
+          } else if (hashType == '3') {
+            thisHash = hexMessage.substring(6,38)
+            thisText = hexToString(hexMessage.substring(38))
+          }
+
+          // Save output as DOCUMENT_NOTARISAION txn type
+          output.transaction.explorer = {
+            from: output.transaction.tx.addr_from,
+            signature: output.transaction.tx.signature,
+            publicKey: output.transaction.tx.public_key,
+            hash: thisHash,
+            text: thisText,
+            raw: hexMessage,
+            type: 'DOCUMENT_NOTARISATION',
+          }
+        // Unknown encoded message - show as normal message
+        } else {
+          output.transaction.tx.message.message_hash = Buffer.from(output.transaction.tx.message.message_hash).toString()
+          output.transaction.explorer = {
+            from: output.transaction.tx.addr_from,
+            signature: output.transaction.tx.signature,
+            publicKey: output.transaction.tx.public_key,
+            message: output.transaction.tx.message.message_hash,
+            type: 'MESSAGE',
+          }
+        }
+      // Non encoded message txn
+      } else {
+        output.transaction.tx.message.message_hash = Buffer.from(output.transaction.tx.message.message_hash).toString()
+        output.transaction.explorer = {
+          from: output.transaction.tx.addr_from,
+          signature: output.transaction.tx.signature,
+          publicKey: output.transaction.tx.public_key,
+          message: output.transaction.tx.message.message_hash,
+          type: 'MESSAGE',
+        }
       }
     }
     
