@@ -1,7 +1,8 @@
 var _ = require('underscore');
 var math = require('mathjs');
 var HTTPS = require('axios');
-
+var bech32 = require('bech32');
+var sha256 = require('sha256');
 var SHOR_PER_QUANTA = 1000000000;
 
 function numberToString(num) {
@@ -17,6 +18,18 @@ function hexToString(input) {
   return str
 }
 
+// Convert hex to bytes
+function hexToBytes(hex) {
+  return Buffer.from(hex, 'hex')
+}
+
+function isCoinbaseAddress(descriptorAndHash) {
+  function zeroTest(element) {
+    return element === 0
+  }
+  return descriptorAndHash.every(zeroTest)
+}
+
 const apiCall = async (apiUrl) => {
   try {
     const response = await HTTPS.get(apiUrl)
@@ -24,6 +37,63 @@ const apiCall = async (apiUrl) => {
   } catch (error) {
     console.log(error)
   }
+}
+
+function b32Encode(input) {
+  return bech32.encode('q', bech32.toWords(input))
+}
+
+function b32Decode(input) {
+  a = bech32.decode(input)
+  if (a.prefix != 'q') {
+    throw "This is not a QRL address"
+  }
+  return Uint8Array.from(bech32.fromWords(a.words))
+}
+
+// Hexstring Address to BECH32 Address
+function hexAddressToB32Address(hexAddress) {
+  bin = Buffer.from(hexAddress.substring(1), 'hex')
+  descriptorAndHash = bin.slice(0, 35)
+  return b32Encode(descriptorAndHash)
+}
+
+function b32AddressToRawAddress(b32Address) {
+  descriptorAndHash = Buffer.from(b32Decode(b32Address))
+
+  // The Raw Coinbase Address is special, and does not need the 4 byte checksum at the end.
+  if (isCoinbaseAddress(descriptorAndHash)) {
+    return descriptorAndHash
+  }
+  ck = sha256(descriptorAndHash, {asBytes: true})
+  ck_slice = Buffer.from(ck.slice(28,32))
+  answer = Buffer.concat([descriptorAndHash, ck_slice])
+  return answer
+}
+
+function hexAddressToRawAddress(hexAddress) {
+  return Buffer.from(hexAddress.substring(1), 'hex')
+}
+
+function b32AddressToHexAddress(b32Address) {
+  rawAddress = b32AddressToRawAddress(b32Address)
+  return `Q${Buffer.from(rawAddress).toString('hex')}`
+}
+
+// Raw Address to BECH32 Address
+function rawAddressToB32Address(rawAddress) {
+  descriptorAndHash = rawAddress.slice(0, 35)
+  return b32Encode(descriptorAndHash)
+}
+
+function rawAddressToHexAddress(rawAddress) {
+  return `Q${Buffer.from(rawAddress).toString('hex')}`
+}
+
+function compareB32HexAddresses(b32Address, hexAddress) {
+  b32_raw = b32AddressToRawAddress(b32Address)
+  hex_raw = hexAddressToRawAddress(hexAddress)
+  return b32_raw.equals(hex_raw) // JS/Buffer oddity: === actually compares if they point to the same object, not if the objects have the same content
 }
 
 async function getQRLprice() {
@@ -263,4 +333,13 @@ module.exports = {
     const x = await getQRLprice()
     return x[0].result[0].Last * x[1].result[0].Last
   },
+  b32Decode: b32Decode,
+  b32Encode: b32Encode,
+  hexAddressToB32Address: hexAddressToB32Address,
+  hexAddressToRawAddress: hexAddressToRawAddress,
+  b32AddressToRawAddress: b32AddressToRawAddress,
+  b32AddressToHexAddress: b32AddressToHexAddress,
+  rawAddressToB32Address: rawAddressToB32Address,
+  rawAddressToHexAddress: rawAddressToHexAddress,
+  compareB32HexAddresses: compareB32HexAddresses
 }
