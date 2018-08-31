@@ -135,15 +135,17 @@ module.exports = {
       output.transaction.tx.amount = ''
 
       if (output.transaction.tx.transactionType === 'coinbase') {
-        output.transaction.tx.addr_from = rawAddressToHexAddress(output.transaction.addr_from)
-        output.transaction.tx.addr_to = rawAddressToHexAddress(output.transaction.tx.coinbase.addr_to)
-        output.transaction.tx.coinbase.addr_to = rawAddressToHexAddress(output.transaction.tx.coinbase.addr_to)
+        output.transaction.tx.addr_from = output.transaction.addr_from
+        output.transaction.tx.addr_to = output.transaction.tx.coinbase.addr_to
+        output.transaction.tx.coinbase.addr_to = output.transaction.tx.coinbase.addr_to
         // eslint-disable-next-line
         output.transaction.tx.amount = numberToString(output.transaction.tx.coinbase.amount / SHOR_PER_QUANTA)
 
         output.transaction.explorer = {
-          from: '',
-          to: output.transaction.tx.addr_to,
+          from_hex: '',
+          from_b32: '',
+          to_hex: rawAddressToHexAddress(output.transaction.tx.addr_to),
+          to_b32: rawAddressToB32Address(output.transaction.tx.addr_to),
           type: 'COINBASE',
         }
       }
