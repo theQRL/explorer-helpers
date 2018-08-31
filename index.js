@@ -202,22 +202,34 @@ module.exports = {
       const thisOutputs = []
       _.each(output.transaction.tx.transfer.addrs_to, (thisAddress, index) => {
         const thisOutput = {
-          address: rawAddressToHexAddress(thisAddress),
+          address: thisAddress,
           amount: numberToString(output.transaction.tx.transfer.amounts[index] / SHOR_PER_QUANTA),
         }
         thisOutputs.push(thisOutput)
         // Now update total transferred with the corresponding amount from this output
         thisTotalTransferred += parseInt(output.transaction.tx.transfer.amounts[index], 10)
       })
-      output.transaction.tx.addr_from = rawAddressToHexAddress(output.transaction.addr_from)
+
+      const outputs_for_explorer = []
+      _.each(output.transaction.tx.transfer.addrs_to, (thisAddress, index) => {
+        const thisOutput = {
+          address_hex: rawAddressToHexAddress(thisAddress),
+          address_b32: rawAddressToB32Address(thisAddress),
+          amount: numberToString(output.transaction.tx.transfer.amounts[index] / SHOR_PER_QUANTA),
+        }
+        outputs_for_explorer.push(thisOutput)
+      })
+
+      output.transaction.tx.addr_from = output.transaction.addr_from
       output.transaction.tx.transfer.outputs = thisOutputs
       output.transaction.tx.amount = numberToString(thisTotalTransferred / SHOR_PER_QUANTA)
       output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
       output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
       output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
       output.transaction.explorer = {
-        from: output.transaction.tx.addr_from,
-        outputs: thisOutputs,
+        from_hex: rawAddressToHexAddress(output.transaction.tx.addr_from),
+        from_b32: rawAddressToB32Address(output.transaction.tx.addr_from),
+        outputs: outputs_for_explorer,
         totalTransferred: numberToString(thisTotalTransferred / SHOR_PER_QUANTA),
         type: 'TRANSFER',
       }
