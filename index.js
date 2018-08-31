@@ -319,7 +319,8 @@ module.exports = {
 
           // Save output as DOCUMENT_NOTARISAION txn type
           output.transaction.explorer = {
-            from: output.transaction.tx.addr_from,
+            from_hex: rawAddressToHexAddress(output.transaction.tx.addr_from),
+            from_b32: rawAddressToB32Address(output.transaction.tx.addr_from),
             signature: output.transaction.tx.signature,
             publicKey: output.transaction.tx.public_key,
             hash: thisHash,
@@ -332,7 +333,8 @@ module.exports = {
         } else {
           output.transaction.tx.message.message_hash = Buffer.from(output.transaction.tx.message.message_hash).toString()
           output.transaction.explorer = {
-            from: output.transaction.tx.addr_from,
+            from_hex: rawAddressToHexAddress(output.transaction.tx.addr_from),
+            from_b32: rawAddressToB32Address(output.transaction.tx.addr_from),
             signature: output.transaction.tx.signature,
             publicKey: output.transaction.tx.public_key,
             message: output.transaction.tx.message.message_hash,
