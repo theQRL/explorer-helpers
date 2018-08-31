@@ -134,9 +134,9 @@ module.exports = {
       output.transaction.tx.amount = ''
 
       if (output.transaction.tx.transactionType === 'coinbase') {
-        output.transaction.tx.addr_from = `Q${Buffer.from(output.transaction.addr_from).toString('hex')}`
-        output.transaction.tx.addr_to = `Q${Buffer.from(output.transaction.tx.coinbase.addr_to).toString('hex')}`
-        output.transaction.tx.coinbase.addr_to = `Q${Buffer.from(output.transaction.tx.coinbase.addr_to).toString('hex')}`
+        output.transaction.tx.addr_from = rawAddressToHexAddress(output.transaction.addr_from)
+        output.transaction.tx.addr_to = rawAddressToHexAddress(output.transaction.tx.coinbase.addr_to)
+        output.transaction.tx.coinbase.addr_to = rawAddressToHexAddress(output.transaction.tx.coinbase.addr_to)
         // eslint-disable-next-line
         output.transaction.tx.amount = numberToString(output.transaction.tx.coinbase.amount / SHOR_PER_QUANTA)
 
@@ -154,19 +154,19 @@ module.exports = {
       const balances = []
       output.transaction.tx.token.initial_balances.forEach((value) => {
         const edit = value
-        edit.address = `Q${Buffer.from(edit.address).toString('hex')}`
+        edit.address = rawAddressToHexAddress(edit.address)
         // eslint-disable-next-line
         edit.amount = numberToString(edit.amount / Math.pow(10, output.transaction.tx.token.decimals))
         balances.push(edit)
       })
 
-      output.transaction.tx.addr_from = `Q${Buffer.from(output.transaction.addr_from).toString('hex')}`
+      output.transaction.tx.addr_from = rawAddressToHexAddress(output.transaction.addr_from)
       output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
       output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
       // eslint-disable-next-line
       output.transaction.tx.token.symbol = Buffer.from(output.transaction.tx.token.symbol).toString()
       output.transaction.tx.token.name = Buffer.from(output.transaction.tx.token.name).toString()
-      output.transaction.tx.token.owner = `Q${Buffer.from(output.transaction.tx.token.owner).toString('hex')}`
+      output.transaction.tx.token.owner = rawAddressToHexAddress(output.transaction.tx.token.owner)
 
       output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
       output.transaction.explorer = {
@@ -189,14 +189,14 @@ module.exports = {
       const thisOutputs = []
       _.each(output.transaction.tx.transfer.addrs_to, (thisAddress, index) => {
         const thisOutput = {
-          address: `Q${Buffer.from(thisAddress).toString('hex')}`,
+          address: rawAddressToHexAddress(thisAddress),
           amount: numberToString(output.transaction.tx.transfer.amounts[index] / SHOR_PER_QUANTA),
         }
         thisOutputs.push(thisOutput)
         // Now update total transferred with the corresponding amount from this output
         thisTotalTransferred += parseInt(output.transaction.tx.transfer.amounts[index], 10)
       })
-      output.transaction.tx.addr_from = `Q${Buffer.from(output.transaction.addr_from).toString('hex')}`
+      output.transaction.tx.addr_from = rawAddressToHexAddress(output.transaction.addr_from)
       output.transaction.tx.transfer.outputs = thisOutputs
       output.transaction.tx.amount = numberToString(thisTotalTransferred / SHOR_PER_QUANTA)
       output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
@@ -215,7 +215,7 @@ module.exports = {
 
       output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
       output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
-      output.transaction.tx.addr_from = `Q${Buffer.from(output.transaction.addr_from).toString('hex')}`
+      output.transaction.tx.addr_from = rawAddressToHexAddress(output.transaction.addr_from)
       output.transaction.tx.slave.slave_pks.forEach((value, index) => {
         output.transaction.tx.slave.slave_pks[index] =
           Buffer.from(value).toString('hex')
@@ -235,7 +235,7 @@ module.exports = {
       output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
       output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
       output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
-      output.transaction.tx.addr_from = `Q${Buffer.from(output.transaction.addr_from).toString('hex')}`
+      output.transaction.tx.addr_from = rawAddressToHexAddress(output.transaction.addr_from)
       output.transaction.tx.latticePK.kyber_pk = Buffer.from(output.transaction.tx.latticePK.kyber_pk).toString('hex')
       output.transaction.tx.latticePK.dilithium_pk = Buffer.from(output.transaction.tx.latticePK.dilithium_pk).toString('hex')
 
@@ -251,7 +251,7 @@ module.exports = {
 
     if (output.transaction.tx.transactionType === 'message') {
       output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
-      output.transaction.tx.addr_from = `Q${Buffer.from(output.transaction.addr_from).toString('hex')}`
+      output.transaction.tx.addr_from = rawAddressToHexAddress(output.transaction.addr_from)
       output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
       output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
 
