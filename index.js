@@ -82,6 +82,7 @@ function b32AddressToHexAddress(b32Address) {
 
 // Raw Address to BECH32 Address
 function rawAddressToB32Address(rawAddress) {
+  rawAddress = Buffer.from(rawAddress) // Sometimes it can just be a JS object, e.g. from a JSON test input
   descriptorAndHash = rawAddress.slice(0, 35)
   return b32Encode(descriptorAndHash)
 }
