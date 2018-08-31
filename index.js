@@ -154,34 +154,44 @@ module.exports = {
     }
 
     if (output.transaction.tx.transactionType === 'token') {
-      const balances = []
       output.transaction.tx.token.initial_balances.forEach((value) => {
         const edit = value
-        edit.address = rawAddressToHexAddress(edit.address)
         // eslint-disable-next-line
         edit.amount = numberToString(edit.amount / Math.pow(10, output.transaction.tx.token.decimals))
-        balances.push(edit)
       })
 
-      output.transaction.tx.addr_from = rawAddressToHexAddress(output.transaction.addr_from)
+      const balances_for_explorer= []
+      output.transaction.tx.token.initial_balances.forEach((value) => {
+        o = {
+          "address_hex": rawAddressToHexAddress(value.address),
+          "address_b32": rawAddressToB32Address(value.address),
+          "amount": value.amount
+        }
+        balances_for_explorer.push(o)
+      })
+
+      output.transaction.tx.addr_from = output.transaction.addr_from
       output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
       output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
       // eslint-disable-next-line
       output.transaction.tx.token.symbol = Buffer.from(output.transaction.tx.token.symbol).toString()
       output.transaction.tx.token.name = Buffer.from(output.transaction.tx.token.name).toString()
-      output.transaction.tx.token.owner = rawAddressToHexAddress(output.transaction.tx.token.owner)
+      output.transaction.tx.token.owner = output.transaction.tx.token.owner
 
       output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
       output.transaction.explorer = {
-        from: output.transaction.tx.addr_from,
-        to: output.transaction.tx.addr_from,
+        from_hex: rawAddressToHexAddress(output.transaction.tx.addr_from),
+        from_b32: rawAddressToB32Address(output.transaction.tx.addr_from),
+        to_hex: rawAddressToHexAddress(output.transaction.tx.addr_from),
+        to_b32: rawAddressToB32Address(output.transaction.tx.addr_from),
         signature: output.transaction.tx.signature,
         publicKey: output.transaction.tx.public_key,
         symbol: output.transaction.tx.token.symbol,
         name: output.transaction.tx.token.name,
         decimals: output.transaction.tx.token.decimals,
-        owner: output.transaction.tx.token.owner,
-        initialBalances: balances,
+        owner_hex: rawAddressToHexAddress(output.transaction.tx.token.owner),
+        owner_b32: rawAddressToB32Address(output.transaction.tx.token.owner),
+        initialBalances: balances_for_explorer,
         type: 'CREATE TOKEN',
       }
     }
