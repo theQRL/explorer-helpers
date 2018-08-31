@@ -262,13 +262,15 @@ module.exports = {
       output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
       output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
       output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
-      output.transaction.tx.addr_from = rawAddressToHexAddress(output.transaction.addr_from)
+      output.transaction.tx.addr_from = output.transaction.addr_from
       output.transaction.tx.latticePK.kyber_pk = Buffer.from(output.transaction.tx.latticePK.kyber_pk).toString('hex')
       output.transaction.tx.latticePK.dilithium_pk = Buffer.from(output.transaction.tx.latticePK.dilithium_pk).toString('hex')
 
       output.transaction.explorer = {
-        from: output.transaction.tx.addr_from,
-        to: '',
+        from_hex: rawAddressToHexAddress(output.transaction.tx.addr_from),
+        from_b32: rawAddressToB32Address(output.transaction.tx.addr_from),
+        to_hex: '',
+        to_b32: '',
         signature: output.transaction.tx.signature,
         publicKey: output.transaction.tx.public_key,
         amount: output.transaction.tx.amount,
