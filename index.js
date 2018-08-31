@@ -280,7 +280,7 @@ module.exports = {
 
     if (output.transaction.tx.transactionType === 'message') {
       output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
-      output.transaction.tx.addr_from = rawAddressToHexAddress(output.transaction.addr_from)
+      output.transaction.tx.addr_from = output.transaction.addr_from
       output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
       output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
 
@@ -343,7 +343,8 @@ module.exports = {
       } else {
         output.transaction.tx.message.message_hash = Buffer.from(output.transaction.tx.message.message_hash).toString()
         output.transaction.explorer = {
-          from: output.transaction.tx.addr_from,
+          from_hex: rawAddressToHexAddress(output.transaction.tx.addr_from),
+          from_b32: rawAddressToB32Address(output.transaction.tx.addr_from),
           signature: output.transaction.tx.signature,
           publicKey: output.transaction.tx.public_key,
           message: output.transaction.tx.message.message_hash,
