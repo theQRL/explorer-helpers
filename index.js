@@ -190,6 +190,75 @@ function parseTransferTokenTx(output) {
   return output
 }
 
+function parseTokenAndTransferTokenTx(responseTokenTx, responseTransferTokenTx) {
+    // Transform Block Metadata into human readable form, just like in txhash()
+    // Use TransferToken's Block Metadata, not TokenTx's
+    const output = JSON.parse(JSON.stringify(responseTransferTokenTx))  // Best way to deep copy in JS
+
+    output.transaction.tx.transaction_hash = Buffer.from(output.transaction.tx.transaction_hash).toString('hex')
+    if (output.transaction.header !== null) {  // If we are in here, it's a confirmed transaction.
+      output.transaction.header.hash_header = Buffer.from(output.transaction.header.hash_header).toString('hex')
+      output.transaction.header.hash_header_prev = Buffer.from(output.transaction.header.hash_header_prev).toString('hex')
+      output.transaction.header.merkle_root = Buffer.from(output.transaction.header.merkle_root).toString('hex')
+      output.transaction.tx.amount = ''
+    }
+
+    // Get relevant information from TokenTx
+    const thisSymbol = Buffer.from(responseTokenTx.transaction.tx.token.symbol).toString()
+    const thisName = Buffer.from(responseTokenTx.transaction.tx.token.name).toString()
+    const thisDecimals = responseTokenTx.transaction.tx.token.decimals
+
+    // Calculate total transferred, and generate a clean structure to display outputs from
+    let thisTotalTransferred = 0
+    const thisOutputs = []
+    _.each(output.transaction.tx.transfer_token.addrs_to, (thisAddress, index) => {
+      const thisOutput = {
+        address: thisAddress,
+        // eslint-disable-next-line
+        amount: numberToString(output.transaction.tx.transfer_token.amounts[index] / Math.pow(10, thisDecimals)),
+      }
+      thisOutputs.push(thisOutput)
+      // Now update total transferred with the corresponding amount from this output
+      // eslint-disable-next-line
+      thisTotalTransferred += parseInt(output.transaction.tx.transfer_token.amounts[index], 10)
+    })
+
+    const outputsForExplorer = []
+    _.each(output.transaction.tx.transfer_token.addrs_to, (thisAddress, index) => {
+      const o = {
+        address_hex: rawAddressToHexAddress(thisAddress),
+        address_b32: rawAddressToB32Address(thisAddress),
+        // eslint-disable-next-line
+        amount: numberToString(output.transaction.tx.transfer_token.amounts[index] / Math.pow(10, thisDecimals)),
+
+      }
+      outputsForExplorer.push(o)
+    })
+    output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
+    output.transaction.tx.addr_from = output.transaction.addr_from
+    output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
+    output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
+    output.transaction.tx.transfer_token.token_txhash = Buffer.from(output.transaction.tx.transfer_token.token_txhash).toString('hex')
+    output.transaction.tx.transfer_token.outputs = thisOutputs
+    // eslint-disable-next-line
+    output.transaction.tx.totalTransferred = numberToString(thisTotalTransferred / Math.pow(10, thisDecimals))
+
+    output.transaction.explorer = {
+      from_hex: rawAddressToHexAddress(output.transaction.tx.addr_from),
+      from_b32: rawAddressToB32Address(output.transaction.tx.addr_from),
+      outputs: outputsForExplorer,
+      signature: output.transaction.tx.signature,
+      publicKey: output.transaction.tx.public_key,
+      token_txhash: output.transaction.tx.transfer_token.token_txhash,
+      // eslint-disable-next-line
+      totalTransferred: numberToString(thisTotalTransferred / Math.pow(10, thisDecimals)),
+      symbol: thisSymbol,
+      name: thisName,
+      type: 'TRANSFER TOKEN',
+    }
+    return output
+}
+
 function parseTransferTx(output) {
   // Calculate total transferred, and generate a clean structure to display outputs from
   let thisTotalTransferred = 0
@@ -415,8 +484,8 @@ module.exports = {
    * @response {Object}
    */
   txhash: function(response) {
-    const output = response
     if ((typeof response) !== 'object') { return false }
+    const output = JSON.parse(JSON.stringify(response))  // Best way to deep copy in JS
 
     output.transaction.tx.transaction_hash = Buffer.from(output.transaction.tx.transaction_hash).toString('hex')
 
@@ -450,5 +519,5 @@ module.exports = {
   rawAddressToB32Address: rawAddressToB32Address,
   rawAddressToHexAddress: rawAddressToHexAddress,
   compareB32HexAddresses: compareB32HexAddresses,
-  parseTransferTokenTx: parseTransferTokenTx
+  parseTokenAndTransferTokenTx: parseTokenAndTransferTokenTx
 }
