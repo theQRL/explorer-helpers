@@ -406,13 +406,12 @@ function parseMessageTx (input) {
     if (hexMessage.substring(8, 10) === 'aa') { kbType = 'add' }
     let kbUser = ''
     let spaceIndex = 0
-    for (let i = 12; i < hexMessage.length; i = i + 2) {
+    for (let i = hexMessage.length; i > 12 ; i = i - 2) {
       if (hexMessage.substring(i, i + 2) === '20' && spaceIndex === 0) { spaceIndex = i }
     }
 
     kbUser = hexToString(hexMessage.substring(12, spaceIndex))
-    let kbHex = x.slice(spaceIndex, x.length)
-    kbHex = kbHex.toString('hex')
+    const kbHex = hexMessage.slice(spaceIndex + 2, hexMessage.length)
 
     // Found encoded message
 
@@ -497,7 +496,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '0.1.0'
+    return '0.1.1'
   },
   /**
    * function
