@@ -496,7 +496,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '0.1.1'
+    return '0.1.2'
   },
   /**
    * function

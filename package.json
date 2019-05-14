@@ -1,6 +1,6 @@
 {
   "name": "@theqrl/explorer-helpers",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Helper utilities to reuse QRL blockchain explorer elements",
   "main": "index.js",
   "scripts": {
@@ -24,10 +24,10 @@
     "babel-preset-env": "^1.7.0",
     "babel-register": "^6.26.0",
     "chai": "^4.1.2",
-    "coveralls": "^3.0.1",
+    "coveralls": "^3.0.3",
     "cross-env": "^5.1.5",
     "mocha": "^5.1.1",
-    "nyc": "^11.7.3"
+    "nyc": "^14.1.1"
   },
   "publishConfig": {
     "access": "public"
