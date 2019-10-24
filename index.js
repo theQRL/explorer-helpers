@@ -345,6 +345,37 @@ function parseLatticePkTx (output) {
   return output
 }
 
+function parseMultiSigCreateTx(output) {
+  try {
+    output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
+    output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
+    output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
+
+    output.transaction.tx.master_addr = Buffer.from(output.transaction.tx.master_addr).toString('hex')
+    output.transaction.explorer = {
+      from_hex: rawAddressToHexAddress(output.transaction.addr_from),
+      from_b32: rawAddressToB32Address(output.transaction.addr_from),
+      signature: output.transaction.tx.signature,
+      publicKey: output.transaction.tx.public_key,
+      type: 'MULTISIG_CREATE'
+    }
+
+    output.transaction.addr_from = Buffer.from(output.transaction.addr_from).toString('hex')
+    // output.transaction.tx.addr_from = Buffer.from(output.transaction.tx.addr_from).toString('hex')
+    output.transaction.tx.master_addr = Buffer.from(output.transaction.tx.master_addr).toString('hex')
+    
+    formattedSignatories = []
+    _.each(output.transaction.tx.multi_sig_create.signatories, (thisAddress) => {
+      formattedSignatories.push(Buffer.from(thisAddress).toString('hex'))
+    })
+    output.transaction.tx.multi_sig_create.signatories = formattedSignatories
+  } catch (error) {
+    // catch to ensure output is returned
+    console.log(error)
+  }
+  return output
+}
+
 function parseMessageTx (input) {
   const output = input
   output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
@@ -406,12 +437,13 @@ function parseMessageTx (input) {
     if (hexMessage.substring(8, 10) === 'aa') { kbType = 'add' }
     let kbUser = ''
     let spaceIndex = 0
-    for (let i = hexMessage.length; i > 12 ; i = i - 2) {
+    for (let i = 12; i < hexMessage.length; i = i + 2) {
       if (hexMessage.substring(i, i + 2) === '20' && spaceIndex === 0) { spaceIndex = i }
     }
 
     kbUser = hexToString(hexMessage.substring(12, spaceIndex))
-    const kbHex = hexMessage.slice(spaceIndex + 2, hexMessage.length)
+    let kbHex = x.slice(spaceIndex, x.length)
+    kbHex = kbHex.toString('hex')
 
     // Found encoded message
 
@@ -478,7 +510,8 @@ const txParsersConfirmed = {
   'transfer': parseTransferTx,
   'slave': parseSlaveTx,
   'latticePK': parseLatticePkTx,
-  'message': parseMessageTx
+  'message': parseMessageTx,
+  'multi_sig_create': parseMultiSigCreateTx,
 }
 
 const txParsersUnconfirmed = {
@@ -487,7 +520,8 @@ const txParsersUnconfirmed = {
   'transfer': parseTransferTx,
   'slave': parseSlaveTx,
   'latticePK': parseLatticePkTx,
-  'message': parseMessageTx
+  'message': parseMessageTx,
+  'multi_sig_create': parseMultiSigCreateTx,
 }
 
 module.exports = {
@@ -496,7 +530,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '0.1.2'
+    return '0.2.0'
   },
   /**
    * function
