@@ -384,7 +384,7 @@ function parseMultiSigSpendTx(output) {
     output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
     output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
     output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
-
+    output.transaction.tx.multi_sig_spend.multi_sig_address = Buffer.from(output.transaction.tx.multi_sig_spend.multi_sig_address).toString('hex')
     output.transaction.tx.master_addr = Buffer.from(output.transaction.tx.master_addr).toString('hex')
     output.transaction.explorer = {
       from_hex: rawAddressToHexAddress(output.transaction.addr_from),
@@ -566,7 +566,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '0.2.2'
+    return '0.2.3'
   },
   /**
    * function
