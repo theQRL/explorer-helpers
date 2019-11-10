@@ -379,6 +379,37 @@ function parseMultiSigCreateTx(output) {
   return output
 }
 
+function parseMultiSigSpendTx(output) {
+  try {
+    output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
+    output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
+    output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
+
+    output.transaction.tx.master_addr = Buffer.from(output.transaction.tx.master_addr).toString('hex')
+    output.transaction.explorer = {
+      from_hex: rawAddressToHexAddress(output.transaction.addr_from),
+      from_b32: rawAddressToB32Address(output.transaction.addr_from),
+      signature: output.transaction.tx.signature,
+      publicKey: output.transaction.tx.public_key,
+      type: 'MULTISIG_SPEND'
+    }
+
+    output.transaction.addr_from = Buffer.from(output.transaction.addr_from).toString('hex')
+    // output.transaction.tx.addr_from = Buffer.from(output.transaction.tx.addr_from).toString('hex')
+    output.transaction.tx.master_addr = Buffer.from(output.transaction.tx.master_addr).toString('hex')
+    
+    formattedSignatories = []
+    _.each(output.transaction.tx.multi_sig_spend.addrs_to, (thisAddress) => {
+      formattedSignatories.push(Buffer.from(thisAddress).toString('hex'))
+    })
+    output.transaction.tx.multi_sig_spend.addrs_to = formattedSignatories
+  } catch (error) {
+    // catch to ensure output is returned
+    console.log(error)
+  }
+  return output
+}
+
 function parseMessageTx (input) {
   const output = input
   output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
@@ -515,6 +546,7 @@ const txParsersConfirmed = {
   'latticePK': parseLatticePkTx,
   'message': parseMessageTx,
   'multi_sig_create': parseMultiSigCreateTx,
+  'multi_sig_spend': parseMultiSigSpendTx,
 }
 
 const txParsersUnconfirmed = {
@@ -525,6 +557,7 @@ const txParsersUnconfirmed = {
   'latticePK': parseLatticePkTx,
   'message': parseMessageTx,
   'multi_sig_create': parseMultiSigCreateTx,
+  'multi_sig_spend': parseMultiSigSpendTx,
 }
 
 module.exports = {
@@ -533,7 +566,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '0.2.1'
+    return '0.2.2'
   },
   /**
    * function
