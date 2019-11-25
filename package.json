@@ -1,6 +1,6 @@
 {
   "name": "@theqrl/explorer-helpers",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Helper utilities to reuse QRL blockchain explorer elements",
   "main": "index.js",
   "scripts": {
