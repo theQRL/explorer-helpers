@@ -375,6 +375,35 @@ function parseMultiSigCreateTx(output) {
   return output
 }
 
+function parseMultiSigVoteTx(output) {
+  try {
+    output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
+    output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
+    output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
+
+    output.transaction.tx.master_addr = Buffer.from(output.transaction.tx.master_addr).toString('hex')
+    output.transaction.explorer = {
+      from_hex: rawAddressToHexAddress(output.transaction.addr_from),
+      from_b32: rawAddressToB32Address(output.transaction.addr_from),
+      signature: output.transaction.tx.signature,
+      publicKey: output.transaction.tx.public_key,
+      type: 'MULTISIG_VOTE'
+    }
+
+    output.transaction.addr_from = Buffer.from(output.transaction.addr_from).toString('hex')
+    // output.transaction.tx.addr_from = Buffer.from(output.transaction.tx.addr_from).toString('hex')
+    output.transaction.tx.master_addr = Buffer.from(output.transaction.tx.master_addr).toString('hex')
+
+    output.transaction.tx.multi_sig_vote.shared_key = Buffer.from(output.transaction.tx.multi_sig_vote.shared_key).toString('hex')
+    output.transaction.tx.multi_sig_vote.prev_tx_hash = Buffer.from(output.transaction.tx.multi_sig_vote.prev_tx_hash).toString('hex')
+
+  } catch (error) {
+    // catch to ensure output is returned
+    console.log(error)
+  }
+  return output
+}
+
 function parseMultiSigSpendTx(output) {
   try {
     output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
@@ -543,6 +572,7 @@ const txParsersConfirmed = {
   'message': parseMessageTx,
   'multi_sig_create': parseMultiSigCreateTx,
   'multi_sig_spend': parseMultiSigSpendTx,
+  'multi_sig_vote': parseMultiSigVoteTx,
 }
 
 const txParsersUnconfirmed = {
@@ -554,6 +584,7 @@ const txParsersUnconfirmed = {
   'message': parseMessageTx,
   'multi_sig_create': parseMultiSigCreateTx,
   'multi_sig_spend': parseMultiSigSpendTx,
+  'multi_sig_vote': parseMultiSigVoteTx,
 }
 
 module.exports = {
@@ -571,22 +602,27 @@ module.exports = {
    */
   txhash: function (response) {
     if ((typeof response) !== 'object') { return false }
-    const output = JSON.parse(JSON.stringify(response)) // Best way to deep copy in JS
+    try {
+      const output = JSON.parse(JSON.stringify(response)) // Best way to deep copy in JS
 
-    output.transaction.tx.transaction_hash = Buffer.from(output.transaction.tx.transaction_hash).toString('hex')
+      output.transaction.tx.transaction_hash = Buffer.from(output.transaction.tx.transaction_hash).toString('hex')
 
-    if (response.transaction.header !== null) { // If we are in here, it's a confirmed transaction.
-      output.transaction.header.hash_header = Buffer.from(output.transaction.header.hash_header).toString('hex')
-      output.transaction.header.hash_header_prev = Buffer.from(output.transaction.header.hash_header_prev).toString('hex')
-      output.transaction.header.merkle_root = Buffer.from(output.transaction.header.merkle_root).toString('hex')
+      if (response.transaction.header !== null) { // If we are in here, it's a confirmed transaction.
+        output.transaction.header.hash_header = Buffer.from(output.transaction.header.hash_header).toString('hex')
+        output.transaction.header.hash_header_prev = Buffer.from(output.transaction.header.hash_header_prev).toString('hex')
+        output.transaction.header.merkle_root = Buffer.from(output.transaction.header.merkle_root).toString('hex')
 
-      output.transaction.tx.amount = ''
+        output.transaction.tx.amount = ''
 
-      // could be a coinbase here. Why? Because a coinbase tx is never an unconfirmed transaction.
-      return txParsersConfirmed[output.transaction.tx.transactionType](output)
+        // could be a coinbase here. Why? Because a coinbase tx is never an unconfirmed transaction.
+        return txParsersConfirmed[output.transaction.tx.transactionType](output)
+      }
+
+      return txParsersUnconfirmed[output.transaction.tx.transactionType](output)
+    } catch (error) {
+      // error thrown, most likely due to unknown transaction type, so return object unchanged
+      return response
     }
-
-    return txParsersUnconfirmed[output.transaction.tx.transactionType](output)
   },
   /**
    * ASYNC function
