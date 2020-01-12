@@ -326,13 +326,9 @@ function parseSlaveTx (output) {
 
 function parseLatticePkTx (output) {
   output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA)
-  output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
-  output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
+
   output.transaction.tx.addr_from = output.transaction.addr_from
-  // output.transaction.tx.latticePK.pk1 = Buffer.from(output.transaction.tx.latticePK.pk1).toString('hex')
-  // output.transaction.tx.latticePK.pk2 = Buffer.from(output.transaction.tx.latticePK.pk2).toString('hex')
-  // output.transaction.tx.latticePK.pk3 = Buffer.from(output.transaction.tx.latticePK.pk3).toString('hex')
-  // output.transaction.tx.latticePK.pk4 = Buffer.from(output.transaction.tx.latticePK.pk4).toString('hex')
+
   output.transaction.explorer = {
     from_hex: rawAddressToHexAddress(output.transaction.tx.addr_from),
     from_b32: rawAddressToB32Address(output.transaction.tx.addr_from),
@@ -566,7 +562,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '0.2.3'
+    return '0.2.4'
   },
   /**
    * function
