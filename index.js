@@ -562,6 +562,22 @@ async function getQRLprice () {
   }
 }
 
+function apiv2Tx(input) {
+  const output = input
+  output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
+  output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
+  output.transaction.tx.master_addr = Buffer.from(output.transaction.tx.master_addr).toString('hex')
+  output.transaction.tx.transaction_hash = Buffer.from(output.transaction.tx.transaction_hash).toString('hex')
+  output.transaction.tx.transfer.message_data = Buffer.from(output.transaction.tx.transfer.message_data).toString()
+  const outputsForExplorer = []
+  _.each(output.transaction.tx.transfer.addrs_to, (thisAddress, index) => {
+    outputsForExplorer.push(`Q${Buffer.from(thisAddress).toString('hex')}`)
+  })
+  output.transaction.tx.transfer.addrs_to = outputsForExplorer
+  output.transaction.addr_from = `Q${Buffer.from(output.transaction.addr_from).toString('hex')}`
+  return output
+}
+
 const txParsersConfirmed = {
   'coinbase': parseCoinbaseTx,
   'token': parseTokenTx,
@@ -594,6 +610,11 @@ module.exports = {
    */
   version: function () {
     return '0.2.5'
+  },
+  tx: function(response) {
+    if ((typeof response) !== 'object') { return false }
+    const output = JSON.parse(JSON.stringify(response))
+    return apiv2Tx(output)
   },
   /**
    * function
