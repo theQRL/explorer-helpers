@@ -562,19 +562,236 @@ async function getQRLprice () {
   }
 }
 
-function apiv2Tx(input) {
+function addMessageDetail(hexMessage) {
+  if (hexMessage.substring(0, 4) === 'afaf') {
+    // Found encoded message
+    const messageType = hexMessage.substring(4, 5)
+
+    // Document Notarisation
+    if (messageType === 'a') {
+      const hashType = hexMessage.substring(5, 6)
+
+      // Define place for hash and text to live
+      let thisHash
+      let thisText
+      let thisHashFunction
+
+      // SHA1
+      if (hashType === '1') {
+        thisHash = hexMessage.substring(6, 46)
+        thisText = hexToString(hexMessage.substring(46))
+        thisHashFunction = 'SHA1'
+        // SHA256
+      } else if (hashType === '2') {
+        thisHash = hexMessage.substring(6, 70)
+        thisText = hexToString(hexMessage.substring(70))
+        thisHashFunction = 'SHA256'
+        // MD5
+      } else if (hashType === '3') {
+        thisHash = hexMessage.substring(6, 38)
+        thisText = hexToString(hexMessage.substring(38))
+        thisHashFunction = 'MD5'
+      }
+
+      // Save output as DOCUMENT_NOTARISAION txn type
+      const explorer = {
+        hash: thisHash,
+        hash_function: thisHashFunction,
+        text: thisText,
+        raw: hexMessage,
+        type: 'DOCUMENT_NOTARISATION'
+      }
+      return explorer
+    }
+  }
+
+  if (hexMessage.substring(0, 8) === '0f0f0002') {
+    let kbType = 'error'
+    if (hexMessage.substring(8, 10) === 'af') { kbType = 'remove' }
+    if (hexMessage.substring(8, 10) === 'aa') { kbType = 'add' }
+    let kbUser = ''
+    let spaceIndex = 0
+    for (let i = 12; i < hexMessage.length; i = i + 2) {
+      if (hexMessage.substring(i, i + 2) === '20' && spaceIndex === 0) { spaceIndex = i }
+    }
+
+    kbUser = hexToString(hexMessage.substring(12, spaceIndex))
+    let kbHex = hexMessage.slice(spaceIndex + 2, hexMessage.length)
+    kbHex = kbHex.toString('hex')
+
+    // Found encoded message
+    const output = {
+      keybaseUser: kbUser,
+      keybaseType: kbType,
+      keybaseSignature: kbHex,
+      raw: hexMessage,
+      type: 'KEYBASE'
+    }
+    return output
+  }
+  // standard message
+  const message = Buffer.from(hexMessage).toString()
+  console.log(message)
+  const explorer = {
+    raw: hexMessage,
+    message: hexToString(message),
+    type: 'MESSAGE'
+  }
+  return explorer
+}
+
+function apiv2A(input) {
   const output = input
+  output.state.foundation_multi_sig_spend_txn_hash = Buffer.from(output.state.foundation_multi_sig_spend_txn_hash).toString('hex')
+  output.state.foundation_multi_sig_vote_txn_hash = Buffer.from(output.state.foundation_multi_sig_vote_txn_hash).toString('hex')
+  output.state.address = `Q${Buffer.from(output.state.address).toString('hex')}`
+  return output
+}
+
+function apiv2Block(input) {
+  const output = input
+
+  output.block_extended.header.hash_header = Buffer.from(output.block_extended.header.hash_header).toString('hex')
+  output.block_extended.header.hash_header_prev = Buffer.from(output.block_extended.header.hash_header_prev).toString('hex')
+  output.block_extended.header.merkle_root = Buffer.from(output.block_extended.header.merkle_root).toString('hex')
+  const extendedTransactions = []
+  _.each(output.block_extended.extended_transactions, (item) => {
+    // console.log('**item**')
+    // console.log(item)
+    // console.log('^^^ end item ^^^')
+    const r = item
+    r.tx.master_addr = Buffer.from(r.tx.master_addr).toString('hex')
+    if (r.tx.master_addr.length > 0) {
+      r.tx.master_addr = `Q${r.tx.master_addr}`
+    }
+    r.tx.public_key = Buffer.from(r.tx.public_key).toString('hex')
+    r.tx.signature = Buffer.from(r.tx.signature).toString('hex')
+    r.tx.transaction_hash = Buffer.from(r.tx.transaction_hash).toString('hex')
+    r.addr_from = `Q${Buffer.from(r.addr_from).toString('hex')}`
+    r.explorer = {}
+    // COINBASE
+    if (r.tx.coinbase) {
+      r.tx.coinbase.addr_to = `Q${Buffer.from(r.tx.coinbase.addr_to).toString('hex')}`
+    }
+    // TRANSFER
+    if (r.tx.transfer) {
+      r.tx.transfer.message_data = Buffer.from(r.tx.transfer.message_data).toString()
+      const addrs = []
+      _.each(r.tx.transfer.addrs_to, (a) => {
+        addrs.push(`Q${Buffer.from(a).toString('hex')}`)
+      })
+      r.tx.transfer.addrs_to = addrs
+    }
+    // MULTI_SIG_CREATE
+    if (r.tx.multi_sig_create) {
+      const sigs = []
+      _.each(r.tx.multi_sig_create.signatories, (s) => {
+        sigs.push(`Q${Buffer.from(s).toString('hex')}`)
+      })
+      r.tx.multi_sig_create.signatories = sigs
+    }
+
+    // MULTI_SIG_SPEND
+    if (r.tx.multi_sig_spend) {
+      const addr = []
+      _.each(r.tx.multi_sig_spend.addrs_to, (s) => {
+        addr.push(`Q${Buffer.from(s).toString('hex')}`)
+      })
+      r.tx.multi_sig_spend.addrs_to = addr
+      r.tx.multi_sig_spend.multi_sig_address = `Q${Buffer.from(r.tx.multi_sig_spend.multi_sig_address).toString('hex')}`
+    }
+
+    // MULTI_SIG_VOTE
+    if (r.tx.multi_sig_vote) {
+      r.tx.multi_sig_vote.prev_tx_hash = Buffer.from(r.tx.multi_sig_vote.prev_tx_hash).toString('hex')
+      r.tx.multi_sig_vote.shared_key = Buffer.from(r.tx.multi_sig_vote.shared_key).toString('hex')
+    }
+
+    // MESSAGE
+    if (r.tx.message) {
+      r.tx.message.message_hash = Buffer.from(r.tx.message.message_hash).toString('hex')
+      r.tx.message.addr_to = Buffer.from(r.tx.message.addr_to).toString('hex')
+      if (r.tx.message.addr_to.length > 1) {
+        r.tx.message.addr_to = `Q${r.tx.message.addr_to}`
+      }
+      r.explorer.message = addMessageDetail(r.tx.message.message_hash)
+    }
+
+  })
+
+  return output
+}
+
+function apiv2Tx(input, confirmed) {
+  const output = input
+
   output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex')
   output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex')
   output.transaction.tx.master_addr = Buffer.from(output.transaction.tx.master_addr).toString('hex')
+  if (output.transaction.tx.master_addr.length > 0) {
+    output.transaction.tx.master_addr = `Q${output.transaction.tx.master_addr}`
+  }
   output.transaction.tx.transaction_hash = Buffer.from(output.transaction.tx.transaction_hash).toString('hex')
-  output.transaction.tx.transfer.message_data = Buffer.from(output.transaction.tx.transfer.message_data).toString()
-  const outputsForExplorer = []
-  _.each(output.transaction.tx.transfer.addrs_to, (thisAddress, index) => {
-    outputsForExplorer.push(`Q${Buffer.from(thisAddress).toString('hex')}`)
-  })
-  output.transaction.tx.transfer.addrs_to = outputsForExplorer
+  
+  // explorer object
+  output.explorer = { found: output.found }
+
+  // TRANSFER transaction type
+  if (output.transaction.tx.transfer) {
+    output.transaction.tx.transfer.message_data = Buffer.from(output.transaction.tx.transfer.message_data).toString()
+    const outputsForExplorer = []
+    _.each(output.transaction.tx.transfer.addrs_to, (thisAddress, index) => {
+      outputsForExplorer.push(`Q${Buffer.from(thisAddress).toString('hex')}`)
+    })
+    output.transaction.tx.transfer.addrs_to = outputsForExplorer
+  }
+
+  // MULTI_SIG_CREATE transaction type
+  if (output.transaction.tx.multi_sig_create) {
+    const sigs = []
+    _.each(output.transaction.tx.multi_sig_create.signatories, (s) => {
+      sigs.push(`Q${Buffer.from(s).toString('hex')}`)
+    })
+    output.transaction.tx.multi_sig_create.signatories = sigs
+  }
+
+  // MULTI_SIG_SPEND
+  if (output.transaction.tx.multi_sig_spend) {
+    const addr = []
+    _.each(output.transaction.tx.multi_sig_spend.addrs_to, (s) => {
+      addr.push(`Q${Buffer.from(s).toString('hex')}`)
+    })
+    output.transaction.tx.multi_sig_spend.addrs_to = addr
+    output.transaction.tx.multi_sig_spend.multi_sig_address = `Q${Buffer.from(output.transaction.tx.multi_sig_spend.multi_sig_address).toString('hex')}`
+  }
+
+  // MULTI_SIG_VOTE
+  if (output.transaction.tx.multi_sig_vote) {
+    output.transaction.tx.multi_sig_vote.prev_tx_hash = Buffer.from(output.transaction.tx.multi_sig_vote.prev_tx_hash).toString('hex')
+    output.transaction.tx.multi_sig_vote.shared_key = Buffer.from(output.transaction.tx.multi_sig_vote.shared_key).toString('hex')
+  }
+
+    // MESSAGE
+  if (output.transaction.tx.message) {
+    output.transaction.tx.message.message_hash = Buffer.from(output.transaction.tx.message.message_hash).toString('hex')
+    output.transaction.tx.message.addr_to = Buffer.from(output.transaction.tx.message.addr_to).toString('hex')
+    if (output.transaction.tx.message.addr_to.length > 1) {
+      output.transaction.tx.message.addr_to = `Q${output.transaction.tx.message.addr_to}`
+    }
+    output.explorer.message = addMessageDetail(output.transaction.tx.message.message_hash)
+  }
+
   output.transaction.addr_from = `Q${Buffer.from(output.transaction.addr_from).toString('hex')}`
+
+  if (confirmed) {
+    output.explorer.confirmed = true
+    output.transaction.header.hash_header = Buffer.from(output.transaction.header.hash_header).toString('hex')
+    output.transaction.header.hash_header_prev = Buffer.from(output.transaction.header.hash_header_prev).toString('hex')
+    output.transaction.header.merkle_root = Buffer.from(output.transaction.header.merkle_root).toString('hex')
+    return output
+  }
+  // unconfirmed
+  output.explorer.confirmed = false
   return output
 }
 
@@ -609,12 +826,27 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '0.2.5'
+    return '2.0.0'
   },
   tx: function(response) {
     if ((typeof response) !== 'object') { return false }
     const output = JSON.parse(JSON.stringify(response))
-    return apiv2Tx(output)
+    if (response.transaction.header === null) {
+      // unconfirmed
+      return apiv2Tx(output, false)
+    }
+    // confirmed
+    return apiv2Tx(output, true)
+  },
+  a: function(response) {
+    if ((typeof response) !== 'object') { return false }
+    const output = JSON.parse(JSON.stringify(response))
+    return apiv2A(output)
+  },
+  block: function(response) {
+    if ((typeof response) !== 'object') { return false }
+    const output = JSON.parse(JSON.stringify(response))
+    return apiv2Block(output)
   },
   /**
    * function
