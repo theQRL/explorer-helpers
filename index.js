@@ -696,6 +696,12 @@ function apiv2Block(input) {
       });
       r.tx.transfer.addrs_to = addrs;
     }
+    // SLAVE transaction type
+    if (r.tx.slave) {
+      r.tx.slave.slave_pks.forEach((value, index) => {
+        r.tx.slave.slave_pks[index] = Buffer.from(value).toString('hex');
+      });
+    }
     // MULTI_SIG_CREATE
     if (r.tx.multi_sig_create) {
       const sigs = [];
@@ -783,6 +789,13 @@ function apiv2Tx(input, confirmed) {
     });
     output.transaction.tx.multi_sig_create.signatories = sigs;
   }
+
+    // SLAVE transaction type
+    if (output.transaction.tx.slave) {
+      output.transaction.tx.slave.slave_pks.forEach((value, index) => {
+        output.transaction.tx.slave.slave_pks[index] = Buffer.from(value).toString('hex');
+      });
+    }
 
   // MULTI_SIG_SPEND
   if (output.transaction.tx.multi_sig_spend) {
