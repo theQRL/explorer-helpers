@@ -4,6 +4,8 @@
 
 A helper library for front end interfaces to the QRL
 
+v2 API functions are documented below. Legacy API calls to this module remain functional.
+
 ## Installation
 
   `npm install @theqrl/explorer-helpers`
@@ -30,7 +32,7 @@ console.log(`1 QRL = $${x}`)
 ```
 [RunKit example](https://runkit.com/jplomas/5ae04b2b291cdd0011f7a1a6)
 
-### txhash(response _json_) => formatted _json_
+### tx(response _json_) => formatted _json_
 
 Takes a grpc query response and formats it for browser display.
 
@@ -41,7 +43,37 @@ Takes a grpc query response and formats it for browser display.
 | Returns       | **formatted _json_**<br>reformatted json object for browser display or element queries |
 
 ```javascript
-var x = explorerHelpers.txhash(response)
+var x = explorerHelpers.tx(response)
+console.log(x)
+```
+
+### block(response _json_) => formatted _json_
+
+Takes a grpc query response from GetObject and formats it for browser display where the requested data was a block.
+
+|   | Description |
+| --- | --- |
+| Function type | sync 						 |
+| Parameters    | **response _object_**<br>a response to a grpc query |
+| Returns       | **formatted _json_**<br>reformatted json object for browser display or element queries |
+
+```javascript
+var x = explorerHelpers.block(response)
+console.log(x)
+```
+
+### a(response _json_) => formatted _json_ 
+
+Takes a grpc query response from GetObject and formats it for browser display where the requested data was an address.
+
+|   | Description |
+| --- | --- |
+| Function type | sync 						 |
+| Parameters    | **response _object_**<br>a response to a grpc query |
+| Returns       | **formatted _json_**<br>reformatted json object for browser display or element queries |
+
+```javascript
+var x = explorerHelpers.a(response)
 console.log(x)
 ```
 
