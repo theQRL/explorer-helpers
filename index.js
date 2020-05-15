@@ -509,7 +509,7 @@ function parseMessageTx(input) {
     }
 
     kbUser = hexToString(hexMessage.substring(12, spaceIndex));
-    let kbHex = x.slice(spaceIndex, x.length);
+    let kbHex = hexMessage.slice(spaceIndex + 2, hexMessage.length);
     kbHex = kbHex.toString('hex');
 
     // Found encoded message
