@@ -1,3 +1,4 @@
+/* eslint no-console: 0 */
 var _ = require('underscore');
 var math = require('mathjs');
 var HTTPS = require('axios');
@@ -287,7 +288,7 @@ function parseTransferTx(output) {
     };
     outputsForExplorer.push(thisOutput);
   });
-
+  output.transaction.tx.transfer.message_data = Buffer.from(output.transaction.tx.transfer.message_data).toString();
   output.transaction.tx.addr_from = output.transaction.addr_from;
   output.transaction.tx.transfer.outputs = thisOutputs;
   output.transaction.tx.amount = numberToString(thisTotalTransferred / SHOR_PER_QUANTA);
@@ -645,7 +646,6 @@ function addMessageDetail(hexMessage) {
   }
   // standard message
   const message = Buffer.from(hexMessage).toString();
-  console.log(message);
   const explorer = {
     raw: hexMessage,
     message: hexToString(message),
@@ -790,12 +790,12 @@ function apiv2Tx(input, confirmed) {
     output.transaction.tx.multi_sig_create.signatories = sigs;
   }
 
-    // SLAVE transaction type
-    if (output.transaction.tx.slave) {
-      output.transaction.tx.slave.slave_pks.forEach((value, index) => {
-        output.transaction.tx.slave.slave_pks[index] = Buffer.from(value).toString('hex');
-      });
-    }
+  // SLAVE transaction type
+  if (output.transaction.tx.slave) {
+    output.transaction.tx.slave.slave_pks.forEach((value, index) => {
+      output.transaction.tx.slave.slave_pks[index] = Buffer.from(value).toString('hex');
+    });
+  }
 
   // MULTI_SIG_SPEND
   if (output.transaction.tx.multi_sig_spend) {
@@ -883,7 +883,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '2.0.0';
+    return '2.0.1';
   },
   tx: function (response) {
     if (typeof response !== 'object') {
