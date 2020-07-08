@@ -883,7 +883,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '2.0.1';
+    return '2.0.2';
   },
   tx: function (response) {
     if (typeof response !== 'object') {
