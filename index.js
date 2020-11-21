@@ -510,7 +510,7 @@ function parseMessageTx(input) {
     }
 
     kbUser = hexToString(hexMessage.substring(12, spaceIndex));
-    let kbHex = x.slice(spaceIndex, x.length);
+    let kbHex = hexMessage.slice(spaceIndex + 2, hexMessage.length);
     kbHex = kbHex.toString('hex');
 
     // Found encoded message
@@ -797,6 +797,11 @@ function apiv2Tx(input, confirmed) {
     });
   }
 
+  // COINBASE transaction type
+  if (output.transaction.tx.coinbase) {
+    output.transaction.tx.coinbase.addr_to = `Q${Buffer.from(output.transaction.tx.coinbase.addr_to).toString('hex')}`;
+  }
+
   // MULTI_SIG_SPEND
   if (output.transaction.tx.multi_sig_spend) {
     const addr = [];
@@ -883,7 +888,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '2.0.2';
+    return '2.1.0';
   },
   tx: function (response) {
     if (typeof response !== 'object') {
