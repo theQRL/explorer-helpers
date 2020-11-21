@@ -790,12 +790,17 @@ function apiv2Tx(input, confirmed) {
     output.transaction.tx.multi_sig_create.signatories = sigs;
   }
 
-    // SLAVE transaction type
-    if (output.transaction.tx.slave) {
-      output.transaction.tx.slave.slave_pks.forEach((value, index) => {
-        output.transaction.tx.slave.slave_pks[index] = Buffer.from(value).toString('hex');
-      });
-    }
+  // SLAVE transaction type
+  if (output.transaction.tx.slave) {
+    output.transaction.tx.slave.slave_pks.forEach((value, index) => {
+      output.transaction.tx.slave.slave_pks[index] = Buffer.from(value).toString('hex');
+    });
+  }
+
+  // COINBASE transaction type
+  if (output.transaction.tx.coinbase) {
+    output.transaction.tx.coinbase.addr_to = `Q${Buffer.from(output.transaction.tx.coinbase.addr_to).toString('hex')}`;
+  }
 
   // MULTI_SIG_SPEND
   if (output.transaction.tx.multi_sig_spend) {
@@ -883,7 +888,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '2.0.0';
+    return '2.1.0';
   },
   tx: function (response) {
     if (typeof response !== 'object') {
