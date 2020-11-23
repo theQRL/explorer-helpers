@@ -22,10 +22,17 @@ function hexToString(input) {
   return str;
 }
 
-// Convert hex to bytes --> unused
-// function hexToBytes (hex) {
-//   return Buffer.from(hex, 'hex')
-// }
+function toHexString(byteArray) {
+  return Array.from(byteArray, function(byte) {
+    return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+  }).join('')
+}
+
+function hexToBytes(hex) {
+  for (var bytes = [], c = 0; c < hex.length; c += 2)
+    bytes.push(parseInt(hex.substr(c, 2), 16));
+  return bytes;
+}
 
 function isCoinbaseAddress(descriptorAndHash) {
   function zeroTest(element) {
@@ -788,6 +795,18 @@ function apiv2Tx(input, confirmed) {
       sigs.push(`Q${Buffer.from(s).toString('hex')}`);
     });
     output.transaction.tx.multi_sig_create.signatories = sigs;
+
+    // fetch MS address
+    const desc = hexToBytes('110000')
+    const txhash = hexToBytes(output.transaction.tx.transaction_hash)
+    const arr = desc.concat(txhash)
+    const prevHash = hexToBytes(sha256(arr))
+    const newArr = desc.concat(prevHash)
+    const newHash = hexToBytes(sha256(newArr).slice(56, 64))
+    const q1 = desc.concat(prevHash)
+    const q = q1.concat(newHash)
+    output.explorer.multisigAddress = `Q${toHexString(q)}`
+
   }
 
   // SLAVE transaction type
@@ -888,7 +907,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '2.1.0';
+    return '2.2.0';
   },
   tx: function (response) {
     if (typeof response !== 'object') {
