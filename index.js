@@ -1,3 +1,4 @@
+/* eslint no-console: 0 */
 var _ = require('underscore');
 var math = require('mathjs');
 var HTTPS = require('axios');
@@ -294,7 +295,7 @@ function parseTransferTx(output) {
     };
     outputsForExplorer.push(thisOutput);
   });
-
+  output.transaction.tx.transfer.message_data = Buffer.from(output.transaction.tx.transfer.message_data).toString();
   output.transaction.tx.addr_from = output.transaction.addr_from;
   output.transaction.tx.transfer.outputs = thisOutputs;
   output.transaction.tx.amount = numberToString(thisTotalTransferred / SHOR_PER_QUANTA);
@@ -652,7 +653,6 @@ function addMessageDetail(hexMessage) {
   }
   // standard message
   const message = Buffer.from(hexMessage).toString();
-  console.log(message);
   const explorer = {
     raw: hexMessage,
     message: hexToString(message),
