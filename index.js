@@ -880,8 +880,6 @@ function apiv2Tokens(input) {
   const output = input;
   const tokens = [];
   _.each(input.tokens_detail, (t) => {
-    console.log('parsing:');
-    console.log(t);
     tokens.push({
       token_txhash: Buffer.from(t.token_txhash).toString('hex'),
       name: Buffer.from(t.name).toString(),
@@ -890,6 +888,19 @@ function apiv2Tokens(input) {
     });
   })
   output.tokens_detail = tokens;
+  return output;
+}
+
+function apiv2Multisig(input) {
+  const output = input;
+  const multisig = [];
+  _.each(input.multi_sig_detail, (t) => {
+    multisig.push({
+      address: `Q${Buffer.from(t.address).toString('hex')}`,
+      balance: t.balance
+    });
+  })
+  output.multi_sig_detail = multisig;
   return output;
 }
 
@@ -924,7 +935,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '2.3.0';
+    return '2.4.0';
   },
   tx: function (response) {
     if (typeof response !== 'object') {
@@ -958,6 +969,13 @@ module.exports = {
     }
     const output = JSON.parse(JSON.stringify(response));
     return apiv2Tokens(output);
+  },
+  multisig: function (response) {
+    if (typeof response !== 'object') {
+      return false;
+    }
+    const output = JSON.parse(JSON.stringify(response));
+    return apiv2Multisig(output);
   },
   /**
    * function

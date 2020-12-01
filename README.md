@@ -77,6 +77,36 @@ var x = explorerHelpers.a(response)
 console.log(x)
 ```
 
+### tokens(response _json_) => formatted _json_ 
+
+Takes a grpc query response from GetTokensByAddress and formats it for browser display.
+
+|   | Description |
+| --- | --- |
+| Function type | sync                          |
+| Parameters    | **response _object_**<br>a response to a grpc query |
+| Returns       | **formatted _json_**<br>reformatted json object for browser display or element queries |
+
+```javascript
+var x = explorerHelpers.tokens(response)
+console.log(x)
+```
+
+### multisig(response _json_) => formatted _json_ 
+
+Takes a grpc query response from GetMultiSigAddressesByAddress and formats it for browser display.
+
+|   | Description |
+| --- | --- |
+| Function type | sync                          |
+| Parameters    | **response _object_**<br>a response to a grpc query |
+| Returns       | **formatted _json_**<br>reformatted json object for browser display or element queries |
+
+```javascript
+var x = explorerHelpers.multisig(response)
+console.log(x)
+```
+
 ## Tests
 
   `npm test`
