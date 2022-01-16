@@ -2,7 +2,7 @@
 var _ = require('underscore');
 var math = require('mathjs');
 var HTTPS = require('axios');
-var bech32 = require('bech32');
+var bech32 = require('bech32').bech32;
 var sha256 = require('sha256');
 var SHOR_PER_QUANTA = 1000000000;
 
@@ -935,7 +935,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '2.4.1';
+    return '2.5.0';
   },
   tx: function (response) {
     if (typeof response !== 'object') {
