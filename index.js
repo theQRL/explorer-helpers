@@ -26,7 +26,7 @@ function hexToString(input) {
 function toHexString(byteArray) {
   return Array.from(byteArray, function(byte) {
     return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-  }).join('')
+  }).join('');
 }
 
 function hexToBytes(hex) {
@@ -500,7 +500,7 @@ function parseMessageTx(input) {
     }
   }
   if (hexMessage.substring(0, 8) === '0f0f0002') {
-    const x = Buffer.from(output.transaction.tx.message.message_hash, 'hex');
+    // const x = Buffer.from(output.transaction.tx.message.message_hash, 'hex');
     let kbType = 'error';
     if (hexMessage.substring(8, 10) === 'af') {
       kbType = 'remove';
@@ -797,15 +797,15 @@ function apiv2Tx(input, confirmed) {
     output.transaction.tx.multi_sig_create.signatories = sigs;
 
     // fetch MS address
-    const desc = hexToBytes('110000')
-    const txhash = hexToBytes(output.transaction.tx.transaction_hash)
-    const arr = desc.concat(txhash)
-    const prevHash = hexToBytes(sha256(arr))
-    const newArr = desc.concat(prevHash)
-    const newHash = hexToBytes(sha256(newArr).slice(56, 64))
-    const q1 = desc.concat(prevHash)
-    const q = q1.concat(newHash)
-    output.explorer.multisigAddress = `Q${toHexString(q)}`
+    const desc = hexToBytes('110000');
+    const txhash = hexToBytes(output.transaction.tx.transaction_hash);
+    const arr = desc.concat(txhash);
+    const prevHash = hexToBytes(sha256(arr));
+    const newArr = desc.concat(prevHash);
+    const newHash = hexToBytes(sha256(newArr).slice(56, 64));
+    const q1 = desc.concat(prevHash);
+    const q = q1.concat(newHash);
+    output.explorer.multisigAddress = `Q${toHexString(q)}`;
 
   }
 
@@ -886,7 +886,7 @@ function apiv2Tokens(input) {
       symbol: Buffer.from(t.symbol).toString(),
       balance: t.balance
     });
-  })
+  });
   output.tokens_detail = tokens;
   return output;
 }
@@ -899,7 +899,7 @@ function apiv2Multisig(input) {
       address: `Q${Buffer.from(t.address).toString('hex')}`,
       balance: t.balance
     });
-  })
+  });
   output.multi_sig_detail = multisig;
   return output;
 }
