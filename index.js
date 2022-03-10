@@ -113,9 +113,7 @@ function parseTokenTx(input) {
   const output = input;
   // Check if this is an NFT
   const symbol = Buffer.from(output.transaction.tx.token.symbol).toString('hex');
-  console.log(symbol);
   if (symbol.slice(0, 8) === '00ff00ff') {
-    console.log('THIS IS AN NFT');
     output.transaction.tx.addr_from = output.transaction.addr_from;
     output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex');
     output.transaction.tx.signature = Buffer.from(output.transaction.tx.signature).toString('hex');
@@ -189,7 +187,6 @@ function parseTokenTx(input) {
       type: 'CREATE TOKEN',
     };
   }
-
   return output;
 }
 
@@ -974,7 +971,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '2.6.0';
+    return '2.6.1';
   },
   tx: function (response) {
     if (typeof response !== 'object') {
