@@ -24,14 +24,13 @@ function hexToString(input) {
 }
 
 function toHexString(byteArray) {
-  return Array.from(byteArray, function(byte) {
-    return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+  return Array.from(byteArray, function (byte) {
+    return ('0' + (byte & 0xff).toString(16)).slice(-2);
   }).join('');
 }
 
 function hexToBytes(hex) {
-  for (var bytes = [], c = 0; c < hex.length; c += 2)
-    bytes.push(parseInt(hex.substr(c, 2), 16));
+  for (var bytes = [], c = 0; c < hex.length; c += 2) bytes.push(parseInt(hex.substr(c, 2), 16));
   return bytes;
 }
 
@@ -190,11 +189,12 @@ function parseTokenTx(input) {
   return output;
 }
 
-function parseTransferTokenTx(output) {
+function parseTransferTokenTx(input) {
+  const output = input;
   // Calculate total transferred, and generate a clean structure to display outputs from
   // let thisTotalTransferred = 0;
   const thisOutputs = [];
-  _.each(output.transaction.tx.transfer_token.addrs_to, (thisAddress, index) => {
+  _.each(input.transaction.tx.transfer_token.addrs_to, (thisAddress, index) => {
     const thisOutput = {
       // eslint-disable-next-line
       amount: '',
@@ -202,11 +202,11 @@ function parseTransferTokenTx(output) {
     thisOutputs.push(thisOutput);
     // Now update total transferred with the corresponding amount from this output
     // eslint-disable-next-line
-    thisTotalTransferred += parseInt(output.transaction.tx.transfer_token.amounts[index], 10);
+    thisTotalTransferred += parseInt(input.transaction.tx.transfer_token.amounts[index], 10);
   });
 
   const outputsForExplorer = [];
-  _.each(output.transaction.tx.transfer_token.addrs_to, (thisAddress) => {
+  _.each(input.transaction.tx.transfer_token.addrs_to, (thisAddress) => {
     const o = {
       address_hex: rawAddressToHexAddress(thisAddress),
       address_b32: rawAddressToB32Address(thisAddress),
@@ -215,7 +215,6 @@ function parseTransferTokenTx(output) {
     };
     outputsForExplorer.push(o);
   });
-
   output.transaction.tx.fee = numberToString(output.transaction.tx.fee / SHOR_PER_QUANTA);
   output.transaction.tx.addr_from = output.transaction.addr_from;
   output.transaction.tx.public_key = Buffer.from(output.transaction.tx.public_key).toString('hex');
@@ -254,8 +253,18 @@ function parseTokenAndTransferTokenTx(responseTokenTx, responseTransferTokenTx) 
   }
 
   // Get relevant information from TokenTx
-  const thisSymbol = Buffer.from(responseTokenTx.transaction.tx.token.symbol).toString();
-  const thisName = Buffer.from(responseTokenTx.transaction.tx.token.name).toString();
+  let thisSymbol;
+  let thisName;
+
+  const symbol = Buffer.from(responseTokenTx.transaction.tx.token.symbol).toString('hex');
+  if (symbol.slice(0, 8) === '00ff00ff') {
+    thisSymbol = Buffer.from(responseTokenTx.transaction.tx.token.symbol).toString('hex');
+    thisName = Buffer.from(responseTokenTx.transaction.tx.token.name).toString('hex');
+  } else {
+    thisSymbol = Buffer.from(responseTokenTx.transaction.tx.token.symbol).toString();
+    thisName = Buffer.from(responseTokenTx.transaction.tx.token.name).toString();
+  }
+
   const thisDecimals = responseTokenTx.transaction.tx.token.decimals;
 
   // Calculate total transferred, and generate a clean structure to display outputs from
@@ -303,8 +312,20 @@ function parseTokenAndTransferTokenTx(responseTokenTx, responseTransferTokenTx) 
     totalTransferred: numberToString(thisTotalTransferred / Math.pow(10, thisDecimals)),
     symbol: thisSymbol,
     name: thisName,
-    type: 'TRANSFER TOKEN',
+    // type: 'TRANSFER TOKEN',
   };
+  if (symbol.slice(0, 8) === '00ff00ff') {
+    const nftBytes = Buffer.concat([Buffer.from(responseTokenTx.transaction.tx.token.symbol), Buffer.from(responseTokenTx.transaction.tx.token.name)]);
+    const idBytes = Buffer.from(nftBytes.slice(4, 8));
+    const cryptoHashBytes = Buffer.from(nftBytes.slice(8, 40));
+    output.transaction.explorer.type = 'TRANSFER NFT';
+    output.transaction.explorer.nft = {
+      id: Buffer.from(idBytes).toString('hex'),
+      hash: Buffer.from(cryptoHashBytes).toString('hex'),
+    };
+  } else {
+    output.transaction.explorer.type = 'TRANSFER TOKEN';
+  }
   return output;
 }
 
@@ -842,7 +863,6 @@ function apiv2Tx(input, confirmed) {
     const q1 = desc.concat(prevHash);
     const q = q1.concat(newHash);
     output.explorer.multisigAddress = `Q${toHexString(q)}`;
-
   }
 
   // SLAVE transaction type
@@ -920,7 +940,7 @@ function apiv2Tokens(input) {
       token_txhash: Buffer.from(t.token_txhash).toString('hex'),
       name: Buffer.from(t.name).toString(),
       symbol: Buffer.from(t.symbol).toString(),
-      balance: t.balance
+      balance: t.balance,
     });
   });
   output.tokens_detail = tokens;
@@ -933,7 +953,7 @@ function apiv2Multisig(input) {
   _.each(input.multi_sig_detail, (t) => {
     multisig.push({
       address: `Q${Buffer.from(t.address).toString('hex')}`,
-      balance: t.balance
+      balance: t.balance,
     });
   });
   output.multi_sig_detail = multisig;
@@ -971,7 +991,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '2.6.1';
+    return '2.7.0';
   },
   tx: function (response) {
     if (typeof response !== 'object') {
