@@ -991,7 +991,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '2.6.1';
+    return '2.7.0';
   },
   tx: function (response) {
     if (typeof response !== 'object') {
