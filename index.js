@@ -625,11 +625,11 @@ function parseCoinbaseTx(output) {
 
 async function getQRLprice() {
   try {
-    const apiUrl = 'https://bittrex.com/api/v1.1/public/getmarketsummary?market=btc-qrl';
-    const apiUrlUSD = 'https://bittrex.com/api/v1.1/public/getmarketsummary?market=usdt-btc';
+    const apiUrl = 'https://api.bittrex.com/v3/markets/qrl-btc/ticker';
+    const apiUrlUSD = 'https://api.bittrex.com/v3/markets/btc-usdt/ticker';
     let b = await apiCall(apiUrl);
     let c = await apiCall(apiUrlUSD);
-    return [b, c];
+    return [parseFloat(b.lastTradeRate), parseFloat(c.lastTradeRate)];
   } catch (e) {
     console.log(e.message);
   }
@@ -991,7 +991,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '2.7.0';
+    return '2.8.0';
   },
   tx: function (response) {
     if (typeof response !== 'object') {
@@ -1071,7 +1071,7 @@ module.exports = {
    */
   qrlPrice: async function () {
     const x = await getQRLprice();
-    return x[0].result[0].Last * x[1].result[0].Last;
+    return x[0] * x[1];
   },
   b32Decode: b32Decode,
   b32Encode: b32Encode,
