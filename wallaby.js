@@ -1,6 +1,6 @@
 console.log('Node version used by wallaby', process.version);
 module.exports = function (wallaby) {
-  process.env.npm_package_version = '2.5.0';
+  process.env.npm_package_version = '2.8.1';
   return {
     files: ['index.js'],
     tests: ['test/test.js'],
