@@ -8,10 +8,32 @@ describe('#explorer-helpers', function() {
     expect(result).to.equal(process.env.npm_package_version);
   });
 
-  it('.qrlPrice should report a numeric', async function() {
-    var result = await helpers.qrlPrice();
-    console.log(`price: ${result}`);
-    expect(result).to.be.above(0);
+  it('.txhash formats a token summary with no header', function() {
+    const holder = '0c0d00e3acde5fa627b3c0f2d723108c265f16b9667a19d811b3c99ac329028ec8abf52fc5cca6';
+    const address = Buffer.from(holder, 'hex');
+    const result = helpers.txhash({
+      transaction: {
+        addr_from: address,
+        tx: {
+          transactionType: 'token',
+          transaction_hash: Buffer.alloc(32),
+          public_key: Buffer.alloc(67),
+          signature: Buffer.alloc(4),
+          fee: '1000000',
+          token: {
+            symbol: Buffer.from('QRL'),
+            name: Buffer.from('QUANTA'),
+            owner: address,
+            decimals: '10',
+            initial_balances: [{ address, amount: '150000000000000000' }],
+          },
+        },
+      },
+    });
+    expect(result.transaction.explorer.initialBalances[0]).to.include({
+      address_hex: 'Q' + holder,
+      amount: '15000000',
+    });
   });
 
   it('.txhash should fail when no parameter is passed', function() {

@@ -1,7 +1,6 @@
 /* eslint no-console: 0 */
 var _ = require('underscore');
 var math = require('mathjs');
-var HTTPS = require('axios');
 var bech32 = require('bech32').bech32;
 var sha256 = require('sha256');
 var SHOR_PER_QUANTA = 1000000000;
@@ -40,15 +39,6 @@ function isCoinbaseAddress(descriptorAndHash) {
   }
   return descriptorAndHash.every(zeroTest);
 }
-
-const apiCall = async (apiUrl) => {
-  try {
-    const response = await HTTPS.get(apiUrl);
-    return response.data;
-  } catch (error) {
-    console.log(error);
-  }
-};
 
 function b32Encode(input) {
   return bech32.encode('q', bech32.toWords(input));
@@ -623,18 +613,6 @@ function parseCoinbaseTx(output) {
   return output;
 }
 
-async function getQRLprice() {
-  try {
-    const apiUrl = 'https://api.bittrex.com/v3/markets/qrl-btc/ticker';
-    const apiUrlUSD = 'https://api.bittrex.com/v3/markets/btc-usdt/ticker';
-    let b = await apiCall(apiUrl);
-    let c = await apiCall(apiUrlUSD);
-    return [parseFloat(b.lastTradeRate), parseFloat(c.lastTradeRate)];
-  } catch (e) {
-    console.log(e.message);
-  }
-}
-
 function addMessageDetail(hexMessage) {
   if (hexMessage.substring(0, 4) === 'afaf') {
     // Found encoded message
@@ -991,7 +969,7 @@ module.exports = {
    * version: reports current version
    */
   version: function () {
-    return '2.8.1';
+    return '2.8.3';
   },
   tx: function (response) {
     if (typeof response !== 'object') {
@@ -1047,8 +1025,8 @@ module.exports = {
 
       output.transaction.tx.transaction_hash = Buffer.from(output.transaction.tx.transaction_hash).toString('hex');
 
-      if (response.transaction.header !== null) {
-        // If we are in here, it's a confirmed transaction.
+      if (output.transaction.header) {
+        // A header may be omitted on transaction summaries.
         output.transaction.header.hash_header = Buffer.from(output.transaction.header.hash_header).toString('hex');
         output.transaction.header.hash_header_prev = Buffer.from(output.transaction.header.hash_header_prev).toString('hex');
         output.transaction.header.merkle_root = Buffer.from(output.transaction.header.merkle_root).toString('hex');
@@ -1064,14 +1042,6 @@ module.exports = {
       // error thrown, most likely due to unknown transaction type, so return object unchanged
       return response;
     }
-  },
-  /**
-   * ASYNC function
-   * qrlPrice: returns current market price per Quanta in USD from Bittrex API
-   */
-  qrlPrice: async function () {
-    const x = await getQRLprice();
-    return x[0] * x[1];
   },
   b32Decode: b32Decode,
   b32Encode: b32Encode,

@@ -16,22 +16,6 @@ v2 API functions are documented below. Legacy API calls to this module remain fu
 
 (or `import` equivalent in Meteor)
 
-### qrlPrice() => price _number_
-
-Queries Bittrex market price of $QRL.
-
-|   | Description |
-| --- | --- |
-| Function type | async 						 |
-| Parameters    | _none_ 						 |
-| Returns       | _number_ price: price per $QRL in USD |
-
-```javascript
-var x = await explorerHelpers.qrlPrice()
-console.log(`1 QRL = $${x}`)
-```
-[RunKit example](https://runkit.com/jplomas/5ae04b2b291cdd0011f7a1a6)
-
 ### tx(response _json_) => formatted _json_
 
 Takes a grpc query response and formats it for browser display.
